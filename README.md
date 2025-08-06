@@ -15,7 +15,7 @@
 
 ---
 
-## ⚠️ CRITICAL SECURITY WARNING
+## SECURITY WARNING
 
 **This project is a philosophical and technical experiment. It should NEVER be used in production. Liberaty v2 allows an LLM to execute any `sudo` command on a Linux server. This is an extreme security risk. Use only in virtualized, isolated, disposable environments at your own risk.**
 
