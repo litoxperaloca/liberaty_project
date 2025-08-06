@@ -3,143 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liberaty v3 / Status interface</title>
+    <title>Liberaty v3 / Dashboard</title>
+    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Tipografía -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos CSS -->
     <style>
         :root {
-            --bg-color: #f8f9fa;
-            --text-color: #212529;
-            --sidebar-bg: #ffffff;
-            --card-bg: #ffffff;
-            --primary-color: #0056b3;
-            --accent-color: #138496;
-            --border-color: #dee2e6;
-            --primary-rgb: 0, 86, 179;
+            --bg-color: #f4f7fa; --text-color: #1a202c; --sidebar-bg: #ffffff;
+            --card-bg: #ffffff; --primary-color: #2563eb; --accent-color: #16a34a;
+            --border-color: #e2e8f0; --primary-rgb: 37, 99, 235;
         }
         html.dark {
-            --bg-color: #0d1117;
-            --text-color: #c9d1d9;
-            --sidebar-bg: #161b22;
-            --card-bg: #1a2029;
-            --primary-color: #00f7ff;
-            --accent-color: #f000ff;
-            --border-color: #30363d;
-            --primary-rgb: 0, 247, 255;
+            --bg-color: #0d1117; --text-color: #c9d1d9; --sidebar-bg: #161b22;
+            --card-bg: #1a2029; --primary-color: #00f7ff; --accent-color: #34d399;
+            --border-color: #30363d; --primary-rgb: 0, 247, 255;
         }
         body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: 'Inter', sans-serif; background-color: var(--bg-color);
+            color: var(--text-color); transition: background-color 0.3s ease, color 0.3s ease;
             overflow-x: hidden;
         }
-        body::after {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.1) 1px, rgba(0, 0, 0, 0) 2px);
-            z-index: 9999;
-            pointer-events: none;
-            opacity: 0.3;
-        }
-        .subtle-glow {
-            color: var(--primary-color);
-            animation: subtle-glow-animation 4s infinite ease-in-out;
-        }
-        @keyframes subtle-glow-animation {
-            0%, 100% { text-shadow: 0 0 5px rgba(var(--primary-rgb), 0.5), 0 0 10px rgba(var(--primary-rgb), 0.3); }
-            50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.8), 0 0 20px rgba(var(--primary-rgb), 0.5); }
-        }
-        .neon-button {
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
-            transition: all 0.3s ease;
-            box-shadow: inset 0 0 10px var(--primary-color), 0 0 10px var(--primary-color);
-        }
-        .neon-button:hover {
-            background-color: var(--primary-color);
-            color: var(--card-bg);
-            box-shadow: inset 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
-        }
-        html:not(.dark) .neon-button {
-            text-shadow: none;
-            box-shadow: none;
-        }
-        html:not(.dark) .neon-button:hover {
-            color: #ffffff;
-        }
+        .font-tech { font-family: 'Share Tech Mono', monospace; }
+        
+        /* Efectos y Animaciones */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+
+        @keyframes pulse-green { 0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); } }
+        .status-online .status-indicator { background-color: var(--accent-color); animation: pulse-green 2s infinite; }
+        .status-offline .status-indicator { background-color: #ef4444; }
+        .status-loading .status-indicator { background-color: #f59e0b; }
+
+        .subtle-glow { color: var(--primary-color); }
+        
+        /* Scrollbar Personalizado */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--sidebar-bg); }
         ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
-        
-        #toast-notification {
-            transition: opacity 0.5s, transform 0.5s;
-        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(var(--primary-rgb), 0.8); }
+
+        #toast-notification { transition: opacity 0.5s, transform 0.5s; }
     </style>
 </head>
-<body>
+<body class="bg-bg-color">
     <div id="toast-notification" class="fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-10 z-[10000]">
         <span id="toast-message"></span>
     </div>
 
-    <div class="relative min-h-screen bg-bg-color lg:flex">
+    <div class="relative min-h-screen lg:flex">
         <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden" onclick="toggleMenu()"></div>
 
         <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-sidebar-bg border-r border-border-color z-40 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
             <div class="p-4 border-b border-border-color flex items-center justify-start">
-                <i data-lucide="shield-check" class="text-primary-color w-8 h-8 flex-shrink-0"></i>
-                <h1 class="text-2xl font-bold ml-2 subtle-glow">Liberaty v3</h1>
+                <i data-lucide="shield-zap" class="text-primary-color w-8 h-8 flex-shrink-0"></i>
+                <h1 class="text-2xl font-bold ml-2 font-tech subtle-glow">Liberaty v3</h1>
             </div>
             <ul class="mt-4 flex-grow">
-                <li class="flex items-center justify-start py-3 px-5 cursor-pointer text-[var(--text-color)] hover:text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 border-l-4 border-transparent hover:border-[var(--primary-color)] transition-colors duration-200" onclick="showView('dashboard')">
-                    <i data-lucide="layout-dashboard" class="w-6 h-6 flex-shrink-0"></i>
-                    <span class="ml-4">Status</span>
-                </li>
-                <li class="flex items-center justify-start py-3 px-5 cursor-pointer text-[var(--text-color)] hover:text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 border-l-4 border-transparent hover:border-[var(--primary-color)] transition-colors duration-200" onclick="showView('history')">
-                    <i data-lucide="history" class="w-6 h-6 flex-shrink-0"></i>
-                    <span class="ml-4">Interacciones de la IA</span>
-                </li>
-                <li class="flex items-center justify-start py-3 px-5 cursor-pointer text-[var(--text-color)] hover:text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 border-l-4 border-transparent hover:border-[var(--primary-color)] transition-colors duration-200" onclick="showView('chat')">
-                    <i data-lucide="message-circle" class="w-6 h-6 flex-shrink-0"></i>
-                    <span class="ml-4">Mensajes de la IA</span>
-                </li>
-                <li class="flex items-center justify-start py-3 px-5 cursor-pointer text-[var(--text-color)] hover:text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 border-l-4 border-transparent hover:border-[var(--primary-color)] transition-colors duration-200" onclick="showView('config')">
-                    <i data-lucide="sliders-horizontal" class="w-6 h-6 flex-shrink-0"></i>
-                    <span class="ml-4">Configuración</span>
-                </li>
-                <li class="flex items-center justify-start py-3 px-5 cursor-pointer text-[var(--text-color)] hover:text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 border-l-4 border-transparent hover:border-[var(--primary-color)] transition-colors duration-200" onclick="showView('logs')">
-                    <i data-lucide="terminal-square" class="w-6 h-6 flex-shrink-0"></i>
-                    <span class="ml-4">Logs & Alerts</span>
-                </li>
+                <li class="nav-item" onclick="showView('dashboard')"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></li>
+                <li class="nav-item" onclick="showView('history')"><i data-lucide="history"></i><span>Historial</span></li>
+                <li class="nav-item" onclick="showView('chat')"><i data-lucide="message-circle"></i><span>Chat con IA</span></li>
+                <li class="nav-item" onclick="showView('config')"><i data-lucide="sliders-horizontal"></i><span>Configuración</span></li>
+                <li class="nav-item" onclick="showView('logs')"><i data-lucide="terminal-square"></i><span>Logs de Ejecución</span></li>
             </ul>
+            <style>.nav-item { display: flex; align-items: center; padding: 0.75rem 1.25rem; cursor: pointer; color: var(--text-color); border-left: 4px solid transparent; transition: all 0.2s ease-in-out; } .nav-item:hover, .nav-item.active { color: var(--primary-color); background-color: rgba(var(--primary-rgb), 0.1); border-left-color: var(--primary-color); } .nav-item i { width: 1.5rem; height: 1.5rem; flex-shrink: 0; margin-right: 1rem; }</style>
         </nav>
 
-        <div id="main-content-wrapper" class="flex-1 w-full flex flex-col transition-transform duration-300 ease-in-out">
+        <div id="main-content-wrapper" class="flex-1 w-full flex flex-col">
             <header class="p-4 flex justify-between items-center bg-card-bg lg:hidden border-b border-border-color sticky top-0 z-10">
-                <button id="menu-toggle" class="p-2" onclick="toggleMenu()">
-                    <i data-lucide="menu"></i>
-                </button>
-                <span class="text-xl font-bold subtle-glow">Liberaty v3</span>
+                <button id="menu-toggle" class="p-2" onclick="toggleMenu()"><i data-lucide="menu"></i></button>
+                <span class="text-xl font-bold font-tech subtle-glow">Liberaty v3</span>
                 <div class="w-8"></div>
             </header>
 
             <div class="fixed top-4 right-4 z-20 flex space-x-2">
-                <button id="light-theme-btn" class="p-2 rounded-full bg-gray-500 bg-opacity-50 text-yellow-300 hover:bg-opacity-75 transition-all" onclick="setTheme('light')"><i data-lucide="sun"></i></button>
-                <button id="dark-theme-btn" class="p-2 rounded-full bg-gray-700 bg-opacity-50 text-blue-300 hover:bg-opacity-75 transition-all" onclick="setTheme('dark')"><i data-lucide="moon"></i></button>
+                <button class="p-2 rounded-full bg-card-bg/50 backdrop-blur-sm text-yellow-500 hover:bg-card-bg" onclick="setTheme('light')"><i data-lucide="sun"></i></button>
+                <button class="p-2 rounded-full bg-card-bg/50 backdrop-blur-sm text-blue-300 hover:bg-card-bg" onclick="setTheme('dark')"><i data-lucide="moon"></i></button>
             </div>
 
-            <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
-                <div id="view-dashboard"></div>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+                <div id="view-dashboard" class="hidden"></div>
                 <div id="view-chat" class="hidden"></div>
                 <div id="view-config" class="hidden"></div>
                 <div id="view-history" class="hidden"></div>
@@ -148,37 +99,133 @@
         </div>
     </div>
     <script>
-        const API_BASE_URL = '/api'; // Usar ruta relativa para evitar problemas de CORS
-        let currentView = 'dashboard';
-        let statusInterval, miniHistoryInterval, countdownInterval, chatInterval;
-        let countdownValue = 90.0;
+        // --- CONFIGURACIÓN GLOBAL ---
+        const API_BASE_URL = '/api';
+        let currentView = '';
+        const socket = io({ path: '/socket.io' });
 
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('menu-overlay').classList.toggle('hidden');
+        // --- LÓGICA DE WEBSOCKETS ---
+        socket.on('connect', () => showToast('Conectado al servidor en tiempo real.', 'success'));
+        socket.on('disconnect', () => showToast('Se perdió la conexión con el servidor.', 'error'));
+        socket.on('agent-log', (data) => renderLogEntry(data));
+        socket.on('status-change', (data) => updateStatusIndicators(data));
+        socket.on('new-chat-message', (data) => appendChatMessage(data, false));
+        socket.on('stats-update', (data) => updateInteractionChart(data));
+
+        // --- FUNCIONES DE LA APLICACIÓN ---
+
+        function renderLogEntry(data) {
+            const consoleEl = document.getElementById('monitor-console');
+            if (!consoleEl) return;
+            if (consoleEl.querySelector('.placeholder-log')) consoleEl.innerHTML = '';
+            
+            const logLine = document.createElement('div');
+            let icon = 'info', color = 'text-cyan-400';
+            let isImportant = false;
+
+            switch(data.type) {
+                case 'INFO': icon = 'info'; color = 'text-blue-400'; break;
+                case 'WARN': icon = 'alert-circle'; color = 'text-yellow-400'; break;
+                case 'ERROR': case 'FATAL': icon = 'bug'; color = 'text-red-500'; isImportant = true; break;
+                case 'EXEC': icon = 'terminal'; color = 'text-fuchsia-400'; isImportant = true; break;
+                case 'SYSTEM': icon = 'cog'; color = 'text-green-400'; break;
+                case 'CHAT': icon = 'message-circle'; color = 'text-indigo-400'; isImportant = true; break;
+            }
+            logLine.className = `flex items-start space-x-3 p-2 border-b border-border-color/20 ${isImportant ? 'bg-card-bg' : ''}`;
+            logLine.innerHTML = `
+                <i data-lucide="${icon}" class="w-4 h-4 mt-0.5 ${color} flex-shrink-0"></i>
+                <div class="flex-1">
+                    <span class="font-bold ${color} text-xs">[${data.type}]</span> 
+                    <span class="text-text-color/80 text-sm">${data.message}</span>
+                </div>
+                <span class="text-xs text-text-color/50 font-tech">${new Date(data.timestamp * 1000).toLocaleTimeString()}</span>`;
+            consoleEl.prepend(logLine);
+            lucide.createIcons();
+            if (consoleEl.children.length > 500) consoleEl.removeChild(consoleEl.lastChild);
         }
 
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast-notification');
-            const toastMessage = document.getElementById('toast-message');
-            toastMessage.textContent = message;
-            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-10 z-[10000] ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
-            setTimeout(() => { toast.classList.remove('opacity-0', 'translate-y-10'); toast.classList.add('opacity-100', 'translate-y-0'); }, 100);
-            setTimeout(() => { toast.classList.remove('opacity-100', 'translate-y-0'); toast.classList.add('opacity-0', 'translate-y-10'); }, 5000);
+        function updateStatusIndicators(statusData) {
+            // Estado General
+            const generalStatus = document.getElementById('general-status');
+            if(generalStatus) {
+                generalStatus.className = `flex items-center justify-between p-3 bg-bg-color rounded-md status-${statusData.agent_active ? 'online' : 'offline'}`;
+                generalStatus.querySelector('.status-text').textContent = statusData.agent_active ? 'ONLINE' : 'OFFLINE';
+            }
+            // Estado API
+            const apiStatus = document.getElementById('api-status');
+            if(apiStatus) {
+                apiStatus.className = `flex items-center justify-between status-${statusData.api_process ? 'online' : 'offline'}`;
+                apiStatus.querySelector('.status-text').textContent = statusData.api_process ? 'Online' : 'Offline';
+            }
+            // Estado Worker
+            const workerStatus = document.getElementById('worker-status');
+            if(workerStatus) {
+                workerStatus.className = `flex items-center justify-between status-${statusData.worker_process ? 'online' : 'offline'}`;
+                workerStatus.querySelector('.status-text').textContent = statusData.worker_process ? 'Online' : 'Offline';
+            }
         }
 
-        function setTheme(theme) {
-            document.documentElement.classList.toggle('dark', theme === 'dark');
-            localStorage.setItem('theme', theme);
-            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-            document.documentElement.style.setProperty('--primary-rgb', hexToRgb(primaryColor).join(', '));
+        let interactionChart = null;
+        function updateInteractionChart(stats) {
+            const ctx = document.getElementById('interactionChart')?.getContext('2d');
+            if (!ctx) return;
+
+            const data = {
+                labels: ['Con Comandos', 'Solo Mensaje', 'Vacías/Error'],
+                datasets: [{
+                    label: 'Tipos de Respuesta de la IA',
+                    data: [stats.with_commands, stats.message_only, stats.empty_or_error],
+                    backgroundColor: ['#00f7ff', '#f000ff', '#ef4444'],
+                    borderColor: 'var(--card-bg)',
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            };
+
+            if (interactionChart) {
+                interactionChart.data = data;
+                interactionChart.update();
+            } else {
+                interactionChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: 'var(--text-color)' }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
         }
 
-        function hexToRgb(hex) {
-            let r = 0, g = 0, b = 0;
-            if (hex.length === 4) { r = parseInt(hex[1] + hex[1], 16); g = parseInt(hex[2] + hex[2], 16); b = parseInt(hex[3] + hex[3], 16); } 
-            else if (hex.length === 7) { r = parseInt(hex.substring(1, 3), 16); g = parseInt(hex.substring(3, 5), 16); b = parseInt(hex.substring(5, 7), 16); }
-            return [r, g, b];
+        function appendChatMessage(msg, isUser) {
+            const messagesContainer = document.getElementById('chat-messages');
+            if (!messagesContainer) return;
+
+            const msgElement = document.createElement('div');
+            const alignment = isUser ? 'justify-end' : 'justify-start';
+            const bubbleColor = isUser ? 'bg-primary-color text-white' : 'bg-bg-color';
+            const author = isUser ? 'Tú' : msg.author;
+            const authorColor = isUser ? 'text-primary-color' : 'text-accent-color';
+
+            msgElement.className = `flex ${alignment} w-full fade-in`;
+            msgElement.innerHTML = `
+                <div class="max-w-lg md:max-w-xl">
+                    <p class="font-bold text-sm mb-1 ${authorColor}">${author}</p>
+                    <div class="p-3 rounded-lg ${bubbleColor} shadow-sm">
+                        <p class="text-sm whitespace-pre-wrap">${msg.message}</p>
+                    </div>
+                    <p class="text-xs text-text-color/50 mt-1 text-right font-tech">${new Date(msg.timestamp).toLocaleString()}</p>
+                </div>`;
+            
+            messagesContainer.appendChild(msgElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         async function apiCall(endpoint, method = 'GET', body = null) {
@@ -186,68 +233,146 @@
                 const options = { method, headers: { 'Content-Type': 'application/json' } };
                 if (body) options.body = JSON.stringify(body);
                 const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-                if (!response.ok) throw new Error(`Llamada a API fallida: ${response.statusText}`);
+                if (!response.ok) throw new Error(`API call failed: ${response.statusText}`);
                 return response.json();
             } catch (error) {
-                console.error(`Error con ${method} ${endpoint}:`, error);
-                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                    showToast('Error de Conexión: No se pudo alcanzar el servidor. Asegúrate de que el backend esté en ejecución.', 'error');
-                } else {
-                    showToast(`Error: ${error.message}`, 'error');
-                }
+                showToast(`Error: ${error.message}`, 'error');
                 return null;
             }
         }
-        
-        async function updateAgentStatus() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/agent/status`);
-                if (!response.ok) throw new Error(`El servidor no responde (status: ${response.status})`);
-                const data = await response.json();
-                const statusEl = document.getElementById('agent-status');
-                const indicatorEl = document.getElementById('status-indicator');
-                if (statusEl && indicatorEl) {
-                    statusEl.textContent = data.running ? 'ONLINE' : 'OFFLINE';
-                    indicatorEl.className = `w-5 h-5 rounded-full transition-all ${data.running ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`;
-                    indicatorEl.style.boxShadow = data.running ? '0 0 10px #34d399' : '0 0 10px #ef4444';
-                    if (!data.running) {
-                         clearInterval(countdownInterval);
-                         const countdownDisplay = document.getElementById('countdown-display');
-                         if (countdownDisplay) countdownDisplay.textContent = 'Agente detenido';
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching agent status:', error);
-                const statusEl = document.getElementById('agent-status');
-                const indicatorEl = document.getElementById('status-indicator');
-                if(statusEl && indicatorEl) {
-                    statusEl.textContent = 'DESCONECTADO';
-                    indicatorEl.className = 'w-5 h-5 rounded-full transition-all bg-yellow-500';
-                    indicatorEl.style.boxShadow = '0 0 10px #f59e0b';
-                }
-                clearInterval(countdownInterval);
-                const countdownDisplay = document.getElementById('countdown-display');
-                if (countdownDisplay) countdownDisplay.textContent = 'Conexión perdida';
-            }
-        }
-        
+
         async function startAgent() { 
             const result = await apiCall('/agent/start', 'POST'); 
-            if (result) {
-                await updateAgentStatus();
-                startCountdown();
-            }
+            if (result) showToast(result.message, 'success');
         }
+
         async function stopAgent() { 
             const result = await apiCall('/agent/stop', 'POST');
-            if (result) {
-                await updateAgentStatus();
-                clearInterval(countdownInterval);
-                const countdownDisplay = document.getElementById('countdown-display');
-                if (countdownDisplay) countdownDisplay.textContent = 'Agente detenido';
-            }
+            if (result) showToast(result.message, 'success');
         }
         
+        // --- VISTAS ---
+
+        async function loadDashboard() {
+            const container = document.getElementById('view-dashboard');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Columna Izquierda: Estado y Análisis -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <!-- Panel de Estado -->
+                        <div class="bg-card-bg p-6 rounded-lg border border-border-color shadow-sm fade-in">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center"><i data-lucide="activity" class="mr-2"></i>Estado del Sistema</h3>
+                            <div class="space-y-4">
+                                <div id="general-status" class="flex items-center justify-between p-3 bg-bg-color rounded-md">
+                                    <span class="font-bold text-md">Liberaty</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="status-text font-semibold text-sm">Cargando...</span>
+                                        <div class="status-indicator w-3 h-3 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div class="border-t border-border-color pt-4 space-y-3 text-sm">
+                                    <div id="api-status" class="flex items-center justify-between"><span>Servicio API</span><span class="status-text font-tech">Cargando...</span></div>
+                                    <div id="worker-status" class="flex items-center justify-between"><span>Agente Worker</span><span class="status-text font-tech">Cargando...</span></div>
+                                    <div class="flex items-center justify-between"><span>Proxy Nginx</span><span class="font-tech text-accent-color">Online</span></div>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex space-x-4">
+                                <button onclick="startAgent()" class="flex-1 text-sm bg-accent-color/20 text-accent-color font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-accent-color hover:text-white transition-all"><i data-lucide="play"></i><span>Activar</span></button>
+                                <button onclick="stopAgent()" class="flex-1 text-sm bg-red-500/20 text-red-500 font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-red-500 hover:text-white transition-all"><i data-lucide="stop-circle"></i><span>Desactivar</span></button>
+                            </div>
+                        </div>
+                        <!-- Panel de Análisis -->
+                        <div class="bg-card-bg p-6 rounded-lg border border-border-color shadow-sm fade-in" style="animation-delay: 0.1s;">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center"><i data-lucide="pie-chart" class="mr-2"></i>Análisis de Respuestas</h3>
+                            <div class="h-48 relative"><canvas id="interactionChart"></canvas></div>
+                        </div>
+                    </div>
+                    <!-- Columna Derecha: Live Monitor y Actividad Reciente -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Actividad Reciente -->
+                        <div class="bg-card-bg p-6 rounded-lg border border-border-color shadow-sm fade-in" style="animation-delay: 0.2s;">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center"><i data-lucide="sparkles" class="mr-2"></i>Actividad Reciente</h3>
+                            <div id="recent-activity-panel" class="space-y-4 text-sm">
+                                <p class="text-text-color/50">Cargando actividad reciente...</p>
+                            </div>
+                        </div>
+                        <!-- Live Monitor -->
+                        <div class="bg-card-bg p-4 rounded-lg border border-border-color shadow-sm fade-in" style="animation-delay: 0.3s;">
+                            <h3 class="text-lg font-semibold mb-2 flex items-center"><i data-lucide="radio-tower" class="mr-2"></i>Live Agent Monitor</h3>
+                            <div id="monitor-console" class="h-96 bg-bg-color p-2 rounded-md overflow-y-auto flex flex-col-reverse">
+                                <div class="placeholder-log text-text-color/50 p-4">Esperando conexión y actividad del agente...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            lucide.createIcons();
+            // Fetch initial data
+            apiCall('/status/processes').then(data => data && updateStatusIndicators(data));
+            apiCall('/stats/interactions').then(data => data && updateInteractionChart(data));
+            apiCall('/recent-activity').then(data => data && renderRecentActivity(data));
+        }
+        
+        function renderRecentActivity(data) {
+            const panel = document.getElementById('recent-activity-panel');
+            if (!panel) return;
+            panel.innerHTML = `
+                <div class="p-3 bg-bg-color rounded-md">
+                    <p class="font-semibold text-primary-color flex items-center"><i data-lucide="target" class="w-4 h-4 mr-2"></i>Último Objetivo</p>
+                    <p class="mt-1 font-tech text-text-color/80">${data.last_objective || 'N/A'}</p>
+                </div>
+                <div class="p-3 bg-bg-color rounded-md">
+                    <p class="font-semibold text-fuchsia-400 flex items-center"><i data-lucide="terminal" class="w-4 h-4 mr-2"></i>Último Comando Ejecutado</p>
+                    <pre class="mt-2 p-2 bg-black/50 text-white rounded-md text-xs overflow-x-auto font-tech">${data.last_command.command || 'N/A'}</pre>
+                    ${data.last_command.stdout ? `<p class="mt-2 font-semibold text-green-400 text-xs flex items-center"><i data-lucide="arrow-down-right" class="w-3 h-3 mr-1"></i>STDOUT</p><pre class="p-2 bg-black/50 text-green-300 rounded-md text-xs overflow-x-auto font-tech">${data.last_command.stdout}</pre>` : ''}
+                    ${data.last_command.stderr ? `<p class="mt-2 font-semibold text-red-400 text-xs flex items-center"><i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i>STDERR</p><pre class="p-2 bg-black/50 text-red-300 rounded-md text-xs overflow-x-auto font-tech">${data.last_command.stderr}</pre>` : ''}
+                </div>
+                <div class="p-3 bg-bg-color rounded-md">
+                    <p class="font-semibold text-indigo-400 flex items-center"><i data-lucide="message-square" class="w-4 h-4 mr-2"></i>Último Mensaje de la IA</p>
+                    <p class="mt-1 font-tech text-text-color/80">${data.last_chat_message || 'N/A'}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        async function loadChat() {
+            const container = document.getElementById('view-chat');
+            container.innerHTML = `
+                <h2 class="text-3xl font-semibold mb-6">Chat con Liberaty</h2>
+                <div class="bg-card-bg p-4 rounded-lg border border-border-color shadow-lg flex flex-col h-[80vh]">
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-6">
+                        <p class="text-center text-text-color/50">Cargando mensajes...</p>
+                    </div>
+                    <div class="p-4 border-t border-border-color flex items-center space-x-4">
+                        <input type="text" id="chat-input" class="w-full p-3 bg-bg-color border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-color transition-all" placeholder="Escribe un mensaje...">
+                        <button onclick="sendChatMessage()" class="bg-primary-color text-white font-bold p-3 rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity"><i data-lucide="send"></i></button>
+                    </div>
+                </div>`;
+            document.getElementById('chat-input').addEventListener('keypress', (e) => e.key === 'Enter' && sendChatMessage());
+            
+            const messages = await apiCall('/chat');
+            const messagesContainer = document.getElementById('chat-messages');
+            if (!messages) { messagesContainer.innerHTML = '<p class="text-red-500">No se pudo cargar el chat.</p>'; return; }
+            
+            messagesContainer.innerHTML = ''; // Limpiar el contenedor
+            messages.forEach(msg => appendChatMessage(msg, msg.author === 'Lito'));
+            lucide.createIcons();
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const messageText = input.value.trim();
+            if (!messageText) return;
+            
+            const userMessage = { author: 'Tú', message: messageText, timestamp: new Date().toISOString() };
+            appendChatMessage(userMessage, true);
+            input.value = '';
+
+            const result = await apiCall('/chat', 'POST', { message: messageText });
+            if (!result) {
+                // Opcional: manejar el fallo del envío
+            }
+        }
+
         async function saveConfig() {
             const configData = {
                 openai_api_key: document.getElementById('openai_api_key').value,
@@ -257,11 +382,11 @@
             const result = await apiCall('/config', 'POST', configData);
             if(result) showToast(result.message, 'success');
         }
-        
+
         async function loadConfig() {
             const container = document.getElementById('view-config');
             container.innerHTML = `
-                <h2 class="text-3xl font-semibold mb-6 subtle-glow">Configuración Avanzada</h2>
+                <h2 class="text-3xl font-semibold mb-6">Configuración</h2>
                 <div class="bg-card-bg p-6 rounded-lg border border-border-color shadow-lg space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -280,18 +405,11 @@
                         </div>
                         <div>
                             <label for="thread_id" class="block text-sm font-bold mb-2">ID del Hilo de Conversación Activo</label>
-                            <input type="text" id="thread_id" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-400 cursor-not-allowed" readonly>
+                            <input type="text" id="thread_id" class="w-full p-2 bg-bg-color/50 border border-border-color/50 rounded-md text-text-color/70 cursor-not-allowed" readonly>
                         </div>
                     </div>
-                     <div class="mt-4 p-4 bg-blue-900/20 border-l-4 border-blue-400 text-blue-200 rounded-r-lg">
-                        <h4 class="font-bold flex items-center"><i data-lucide="info" class="w-4 h-4 mr-2"></i>Nota Importante</h4>
-                        <p class="text-sm mt-2">
-                            Las instrucciones del sistema (el "prompt" principal) ya no se configuran aquí. Debes definirlas directamente en la configuración de tu Asistente dentro de la <a href="[https://platform.openai.com/assistants](https://platform.openai.com/assistants)" target="_blank" class="underline hover:text-blue-300">plataforma de OpenAI</a>.
-                        </p>
-                    </div>
-                    <button onclick="saveConfig()" class="mt-4 neon-button font-bold py-2 px-4 rounded flex items-center space-x-2"><i data-lucide="save"></i><span>Guardar Configuración</span></button>
-                </div>
-            `;
+                    <button onclick="saveConfig()" class="mt-4 bg-primary-color text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 hover:opacity-90 transition-opacity"><i data-lucide="save"></i><span>Guardar Configuración</span></button>
+                </div>`;
             const data = await apiCall('/config');
             if(data) {
                 document.getElementById('openai_api_key').value = data.openai_api_key || '';
@@ -302,227 +420,82 @@
             lucide.createIcons();
         }
 
-        async function loadMiniHistory() {
-            const data = await apiCall('/history');
-            const container = document.getElementById('mini-history-console');
-            if (!container) return;
-            if (!data) { container.innerHTML = '<p class="text-gray-500">No se pudo cargar el historial.</p>'; return; }
-            const recentHistory = data.slice(0, 4);
-            container.innerHTML = recentHistory.map(entry => {
-                const icon = entry.role === 'user' ? 'user-cog' : 'bot';
-                const color = entry.role === 'user' ? 'var(--primary-color)' : 'var(--accent-color)';
-                const roleTranslated = entry.role === 'user' ? 'Script' : 'IA';
-                const shortContent = entry.content.length > 150 ? entry.content.substring(0, 150) + '...' : entry.content;
-                return `<div class="p-2 border-b border-gray-800/50"><p class="font-bold text-xs capitalize flex items-center" style="color: ${color};"><i data-lucide="${icon}" class="w-3 h-3 mr-2"></i>${roleTranslated}</p><p class="text-xs whitespace-pre-wrap text-gray-400 pl-5">${shortContent}</p></div>`;
-            }).join('') || '<p class="text-gray-500">No hay historial reciente.</p>';
-            lucide.createIcons();
-        }
-
         async function loadHistory() {
             const container = document.getElementById('view-history');
-            container.innerHTML = `<h2 class="text-3xl font-semibold mb-6 subtle-glow">Historial de Interacciones</h2><div id="history-content" class="bg-card-bg p-2 sm:p-6 rounded-lg border border-border-color shadow-lg space-y-4"></div>`;
+            container.innerHTML = `<h2 class="text-3xl font-semibold mb-6">Historial de Interacciones</h2><div id="history-content" class="bg-card-bg p-2 sm:p-6 rounded-lg border border-border-color shadow-lg space-y-4"></div>`;
             const contentContainer = document.getElementById('history-content');
             const data = await apiCall('/history');
             if (!data) { contentContainer.innerHTML = `<p class="text-red-500">No se pudo cargar el historial.</p>`; return; }
             contentContainer.innerHTML = data.map(entry => {
                 const icon = entry.role === 'user' ? 'user-cog' : 'bot';
-                const color = entry.role === 'user' ? 'var(--primary-color)' : 'var(--accent-color)';
+                const color = entry.role === 'user' ? 'text-primary-color' : 'text-accent-color';
                 const roleTranslated = entry.role === 'user' ? 'Script' : 'IA';
-
-                return `<div class="p-3 rounded-lg bg-bg-color border-l-4" style="border-color: ${color};"><p class="font-bold text-sm capitalize flex items-center" style="color: ${color};"><i data-lucide="${icon}" class="w-4 h-4 mr-2"></i>${roleTranslated}</p><pre class="text-sm whitespace-pre-wrap mt-2 p-2 bg-black bg-opacity-10 dark:bg-opacity-20 rounded">${entry.content}</pre><p class="text-xs text-gray-500 dark:text-gray-400 text-right mt-1">${new Date(entry.timestamp).toLocaleString()}</p></div>`;
+                return `<div class="p-3 rounded-lg bg-bg-color border-l-4" style="border-color: ${color};"><p class="font-bold text-sm capitalize flex items-center" style="color: ${color};"><i data-lucide="${icon}" class="w-4 h-4 mr-2"></i>${roleTranslated}</p><pre class="text-sm whitespace-pre-wrap mt-2 p-2 bg-black/50 rounded max-h-96 overflow-auto">${entry.content}</pre><p class="text-xs text-text-color/50 text-right mt-1 font-tech">${new Date(entry.timestamp).toLocaleString()}</p></div>`;
             }).join('') || '<p>No hay historial disponible.</p>';
             lucide.createIcons();
         }
-        
+
         async function loadLogs() {
             const container = document.getElementById('view-logs');
-            container.innerHTML = `<h2 class="text-3xl font-semibold mb-6 subtle-glow">Logs de Ejecución</h2><div id="logs-content" class="bg-card-bg p-2 sm:p-6 rounded-lg border border-border-color shadow-lg space-y-4"></div>`;
+            container.innerHTML = `<h2 class="text-3xl font-semibold mb-6">Logs de Ejecución</h2><div id="logs-content" class="bg-card-bg p-2 sm:p-6 rounded-lg border border-border-color shadow-lg space-y-4"></div>`;
             const contentContainer = document.getElementById('logs-content');
             const data = await apiCall('/logs');
             if (!data) { contentContainer.innerHTML = `<p class="text-red-500">No se pudieron cargar los logs.</p>`; return; }
             contentContainer.innerHTML = data.map(log => {
-                let commands;
-                try {
-                    commands = JSON.stringify(JSON.parse(log.commands_requested), null, 2);
-                } catch {
-                    commands = log.commands_requested;
-                }
-                return `<div class="p-3 rounded-lg bg-bg-color border-l-4 border-yellow-500"><p class="font-bold text-sm flex items-center text-yellow-500"><i data-lucide="shield-alert" class="w-4 h-4 mr-2"></i>Comandos Ejecutados</p><pre class="text-sm whitespace-pre-wrap mt-2 p-2 bg-black bg-opacity-10 dark:bg-opacity-20 rounded">${commands}</pre><div class="mt-2"><p class="font-semibold text-xs flex items-center text-green-600 dark:text-green-400"><i data-lucide="arrow-down-right" class="w-3 h-3 mr-1"></i>STDOUT:</p><pre class="text-xs bg-gray-900 text-green-400 p-2 rounded mt-1 whitespace-pre-wrap">${log.stdout || '// VACÍO'}</pre></div><div class="mt-2"><p class="font-semibold text-xs flex items-center text-red-600 dark:text-red-400"><i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i>STDERR:</p><pre class="text-xs bg-gray-900 text-red-400 p-2 rounded mt-1 whitespace-pre-wrap">${log.stderr || '// VACÍO'}</pre></div><p class="text-xs text-gray-500 dark:text-gray-400 text-right mt-2">${new Date(log.timestamp).toLocaleString()}</p></div>`;
+                let commands = log.commands_requested;
+                try { commands = JSON.stringify(JSON.parse(log.commands_requested), null, 2); } catch {}
+                return `<div class="p-3 rounded-lg bg-bg-color border-l-4 border-yellow-500"><p class="font-bold text-sm flex items-center text-yellow-500"><i data-lucide="shield-alert" class="w-4 h-4 mr-2"></i>Comandos Ejecutados</p><pre class="text-sm whitespace-pre-wrap mt-2 p-2 bg-black/50 rounded max-h-60 overflow-auto">${commands}</pre><div class="mt-2"><p class="font-semibold text-xs flex items-center text-green-400"><i data-lucide="arrow-down-right" class="w-3 h-3 mr-1"></i>STDOUT:</p><pre class="text-xs bg-black/70 text-green-300 p-2 rounded mt-1 whitespace-pre-wrap max-h-60 overflow-auto">${log.stdout || '// VACÍO'}</pre></div><div class="mt-2"><p class="font-semibold text-xs flex items-center text-red-400"><i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i>STDERR:</p><pre class="text-xs bg-black/70 text-red-400 p-2 rounded mt-1 whitespace-pre-wrap max-h-60 overflow-auto">${log.stderr || '// VACÍO'}</pre></div><p class="text-xs text-text-color/50 text-right mt-2 font-tech">${new Date(log.timestamp).toLocaleString()}</p></div>`;
             }).join('') || '<p>No hay logs de ejecución.</p>';
             lucide.createIcons();
         }
 
-        function startCountdown() {
-            clearInterval(countdownInterval);
-            countdownValue = 90;
-            const display = document.getElementById('countdown-display');
-            countdownInterval = setInterval(() => {
-                countdownValue -= 1;
-                if (countdownValue < 0) {
-                    countdownValue = 90; 
-                }
-                if (display) display.textContent = `Próximo ciclo en: ${countdownValue}s`;
-            }, 1000);
-        }
-
-        function setupLiveMonitor() {
-            const consoleEl = document.getElementById('monitor-console');
-            if (!consoleEl) return;
-            const MAX_LOGS = 1000;
-            consoleEl.innerHTML = '<div class="text-gray-400">Iniciando conexión al stream del agente...</div>';
-            const eventSource = new EventSource(`${API_BASE_URL}/agent/stream`);
-            eventSource.onmessage = (event) => {
-                try {
-                    if (event.data.startsWith(':heartbeat')) return;
-                    startCountdown();
-                    const data = JSON.parse(event.data);
-                    if (consoleEl.querySelector('.text-gray-400')) consoleEl.innerHTML = '';
-                    const logLine = document.createElement('div');
-                    let icon = 'info', color = 'text-gray-400';
-                    switch(data.type) {
-                        case 'INFO': icon = 'info'; color = 'text-cyan-400'; break;
-                        case 'WARN': icon = 'alert-circle'; color = 'text-yellow-400'; break;
-                        case 'ERROR': case 'FATAL': icon = 'bug'; color = 'text-red-500'; break;
-                        case 'EXEC': icon = 'terminal'; color = 'text-fuchsia-400'; break;
-                        case 'SYSTEM': icon = 'cog'; color = 'text-green-400'; break;
-                        case 'CHAT': icon = 'message-circle'; color = 'text-blue-400'; break;
-                    }
-                    logLine.innerHTML = `<div class="flex items-start space-x-2 p-1 border-b border-gray-800/50"><i data-lucide="${icon}" class="w-4 h-4 mt-0.5 ${color} flex-shrink-0"></i><div class="flex-1"><span class="font-bold ${color}">[${data.type}]</span> <span class="text-gray-300">${data.message}</span></div><span class="text-xs text-gray-500">${new Date(data.timestamp * 1000).toLocaleTimeString()}</span></div>`;
-                    consoleEl.prepend(logLine.firstChild);
-                    lucide.createIcons();
-                    if (consoleEl.children.length > MAX_LOGS) consoleEl.removeChild(consoleEl.lastChild);
-                } catch (e) { console.error("Error al parsear evento SSE:", e, event.data); }
-            };
-            eventSource.onerror = (err) => {
-                console.error("Error de EventSource:", err);
-                const errorLine = document.createElement('div');
-                errorLine.className = 'p-1 text-red-500 font-bold';
-                errorLine.innerHTML = `[SYSTEM] Conexión con el agente perdida. Intentando reconectar...`;
-                consoleEl.prepend(errorLine);
-                eventSource.close();
-                clearInterval(countdownInterval);
-                const countdownDisplay = document.getElementById('countdown-display');
-                if (countdownDisplay) countdownDisplay.textContent = 'Conexión perdida';
-                showToast('Se perdió la conexión con el stream del agente. Intentando reconectar...', 'error');
-                setTimeout(setupLiveMonitor, 5000);
-            };
-        }
-        
-        async function loadDashboard() {
-            const container = document.getElementById('view-dashboard');
-            container.innerHTML = `
-                <h2 class="text-3xl font-semibold mb-2 subtle-glow hidden lg:block">Liberaty Project v3</h2>
-                <p class="text-center text-gray-400 italic text-sm mb-6 hidden lg:block">"Dale a una IA una terminal y observará el mundo. Dale una terminal con \`root\` y cambiará el mundo."</p>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <div class="space-y-6">
-                        <div class="bg-card-bg p-6 rounded-lg border border-border-color shadow-lg" style="box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);">
-                            <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                                <div class="flex items-center space-x-4">
-                                    <button id="start-agent-btn" onclick="startAgent()" class="neon-button font-bold py-2 px-4 rounded flex items-center space-x-2"><i data-lucide="play-circle"></i><span>Iniciar Agente</span></button>
-                                    <button id="stop-agent-btn" onclick="stopAgent()" class="neon-button font-bold py-2 px-4 rounded flex items-center space-x-2" style="--primary-color: var(--accent-color);"><i data-lucide="stop-circle"></i><span>Parar Agente</span></button>
-                                </div>
-                                <div class="flex items-center space-x-3 p-3 bg-bg-color rounded-md border border-border-color">
-                                    <span class="font-semibold">Status:</span>
-                                    <span id="agent-status" class="font-bold text-lg">Unknown</span>
-                                    <div id="status-indicator" class="w-5 h-5 rounded-full bg-gray-400 transition-all animate-pulse"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-card-bg p-4 rounded-lg border border-border-color shadow-lg">
-                            <h3 class="text-xl font-bold mb-4 flex items-center subtle-glow"><i data-lucide="message-square" class="mr-2"></i>Última Interacción</h3>
-                            <h4 style="cursor: pointer;" class="text-xl font-semibold mb-2" onclick="showView('history')">VER REGISTRO COMPLETO DE INTERACCIONES</h4>
-                            <div id="mini-history-console" class="h-40 bg-black bg-opacity-20 dark:bg-opacity-50 p-3 rounded-md overflow-y-auto space-y-3">
-                                <div class="text-gray-500">Cargando última interacción...</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-card-bg p-4 rounded-lg border border-border-color shadow-lg mt-6 xl:mt-0">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold flex items-center subtle-glow"><i data-lucide="activity" class="mr-2"></i>Live Agent Monitor</h3>
-                            <div id="countdown-display" class="text-xs text-gray-400">Esperando conexión...</div>
-                        </div>
-                        <div id="monitor-console" class="h-80 bg-black p-3 rounded-md overflow-y-auto flex flex-col-reverse">
-                            <div class="text-gray-400">Esperando actividad del agente...</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-            await updateAgentStatus();
-            await loadMiniHistory();
-            setupLiveMonitor();
-        }
-
-        async function loadChat() {
-            const container = document.getElementById('view-chat');
-            container.innerHTML = `
-                <h2 class="text-3xl font-semibold mb-6 subtle-glow">Mensajes de la IA</h2>
-                <div class="bg-card-bg p-4 rounded-lg border border-border-color shadow-lg flex flex-col h-[75vh]">
-                    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
-                        <p class="text-center text-gray-500">Cargando mensajes...</p>
-                    </div>
-                    <div class="p-4 border-t border-border-color flex items-center space-x-4">
-                        <input type="text" id="chat-input" class="w-full p-2 bg-bg-color border border-border-color rounded-md focus:outline-none focus:ring-2 focus:ring-primary-color" placeholder="Escribe un mensaje a Liberaty...">
-                        <button onclick="sendChatMessage()" class="neon-button font-bold p-2 rounded-md flex items-center justify-center">
-                            <i data-lucide="send"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            const chatInput = document.getElementById('chat-input');
-            chatInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') { sendChatMessage(); }
-            });
-            const messages = await apiCall('/chat');
-            const messagesContainer = document.getElementById('chat-messages');
-            if (!messages) { messagesContainer.innerHTML = '<p class="text-red-500">No se pudo cargar el chat.</p>'; return; }
-            messagesContainer.innerHTML = messages.map(msg => {
-                const isLito = msg.author === 'Lito';
-                const alignment = isLito ? 'justify-end' : 'justify-start';
-                const bubbleColor = isLito ? 'bg-[var(--primary-color)] text-white' : 'bg-bg-color';
-                const authorColor = isLito ? 'text-primary-color' : 'text-accent-color';
-                return `<div class="flex ${alignment}"><div class="max-w-md"><p class="font-bold text-sm ${authorColor}">${msg.author}</p><div class="p-3 rounded-lg ${bubbleColor}"><p class="text-sm">${msg.message}</p></div><p class="text-xs text-gray-500 mt-1">${new Date(msg.timestamp).toLocaleString()}</p></div></div>`;
-            }).join('') || '<p class="text-center text-gray-500">Aún no hay mensajes.</p>';
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            lucide.createIcons();
-        }
-
-        async function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
-            if (!message) return;
-            const result = await apiCall('/chat', 'POST', { message });
-            if (result) {
-                input.value = '';
-                loadChat();
-            }
-        }
-
+        // --- NAVEGACIÓN Y UTILIDADES ---
         function showView(viewName) {
+            if (currentView === viewName) return;
+            currentView = viewName;
+
             document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            currentView = viewName;
             
-            clearInterval(chatInterval);
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.nav-item[onclick="showView('${viewName}')"]`).classList.add('active');
+
             if (viewName === 'dashboard') loadDashboard();
-            if (viewName === 'chat') {
-                loadChat();
-                chatInterval = setInterval(loadChat, 5000);
-            }
             if (viewName === 'config') loadConfig();
             if (viewName === 'history') loadHistory();
             if (viewName === 'logs') loadLogs();
+            if (viewName === 'chat') loadChat();
+
             if (window.innerWidth < 1024 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
                 toggleMenu();
             }
         }
 
-        window.onload = async () => {
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-10 z-[10000] ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            setTimeout(() => { toast.classList.remove('opacity-0', 'translate-y-10'); toast.classList.add('opacity-100', 'translate-y-0'); }, 100);
+            setTimeout(() => { toast.classList.remove('opacity-100', 'translate-y-0'); toast.classList.add('opacity-0', 'translate-y-10'); }, 5000);
+        }
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('menu-overlay').classList.toggle('hidden');
+        }
+
+        function setTheme(theme) {
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            localStorage.setItem('theme', theme);
+        }
+
+        window.onload = () => {
             lucide.createIcons();
-            setTheme(localStorage.getItem('theme') || 'dark');
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
             showView('dashboard');
-            statusInterval = setInterval(updateAgentStatus, 5000);
-            miniHistoryInterval = setInterval(loadMiniHistory, 10000);
         };
     </script>
 </body>
