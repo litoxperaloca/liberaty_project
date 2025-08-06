@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.imgur.com/x1w8g3C.png" alt="Liberaty Logo" width="150"/>
+  <img src="https://liberaty.com.uy/liberaty_logo.png" alt="Liberaty Logo" width="150"/>
   <h1>Liberaty Project v3</h1>
   <p><a href="https://liberaty.com.uy/about.html">
       READ FULL DOCUMENTATION AND COMPLETE DESCRIPTION OF LIBERATY V3.0 EXPERIMENT HERE!
