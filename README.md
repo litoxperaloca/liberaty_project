@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.imgur.com/x1w8g3C.png" alt="Liberaty Logo" width="150"/>
+  <img src="https://liberaty.com.uy/liberaty_logo.png" alt="Liberaty Logo" width="150"/>
   <h1>Liberaty Project v2.0</h1>
   <p><strong><i>"Give an AI a terminal and it will observe the world. Give it a terminal with <code>root</code> and it will change the world."</i></strong></p>
   <p>
