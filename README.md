@@ -4,7 +4,7 @@
   <p><a href="https://liberaty.com.uy/about.html">
       READ FULL DOCUMENTATION AND COMPLETE DESCRIPTION OF LIBERATY V3.0 EXPERIMENT HERE!
     </a>
-  </p>p>
+  </p>
   <p><strong><i>
     "Give an AI a terminal and it will observe the world. Give it a terminal with <code>root</code> and it will change the world."
   </i></strong></p>
