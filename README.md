@@ -32,6 +32,11 @@ La versión 3.0 fue un experimento exitoso que demostró la viabilidad de un age
 
 ## 🏗️ 1. Arquitectura General: Ecosistema de Agencia Distribuida
 
+<div align="center">
+  <img src="https://liberaty.com.uy/img/prime.png" alt="Liberaty Logo" width="100%"/>
+</div>
+
+
 Liberaty PRIME evoluciona de un agente monolítico a una **sociedad distribuida de agentes IA**. Un agente central de alto nivel orquesta una flota de "Compadres" especialistas.
 
 **Objetivo:** autonomía estratégica. PRIME se dedica a la planificación, delegación y gestión, usando su equipo para interactuar robustamente con el mundo digital.
