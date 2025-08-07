@@ -1,285 +1,312 @@
 <div align="center">
   <img src="https://liberaty.com.uy/liberaty_logo.png" alt="Liberaty Logo" width="150"/>
-  <h1>Liberaty Project v3</h1>
-  <p><a href="https://liberaty.com.uy/about.html">
-      READ FULL DOCUMENTATION AND COMPLETE DESCRIPTION OF LIBERATY V3.0 EXPERIMENT HERE!
-    </a>
-  </p>
-  <p><strong><i>
-    "Give an AI a terminal and it will observe the world. Give it a terminal with <code>root</code> and it will change the world."
-  </i></strong></p>
-  <p>
-    <a href="https://github.com/litoxperaloca/liberaty_project/blob/main/LICENSE">
-      <img src="https://img.shields.io/badge/License-Free-brightgreen" alt="License">
-    </a>
-    <img src="https://img.shields.io/badge/Architecture-Microservices-blue" alt="Microservices Architecture">
-    <img src="https://img.shields.io/badge/Communication-Redis_&_WebSockets-red" alt="Redis & WebSockets">
-    <img src="https://img.shields.io/badge/Proxy-Nginx-blueviolet" alt="Nginx">
-    <img src="https://img.shields.io/badge/AI-OpenAI_Assistants-purple" alt="OpenAI Assistants">
-  </p>
 </div>
+# 🚀 Liberaty v4.0 "PRIME"  
+**Versión:** 4.0 ("PRIME")  
+**Fecha:** 7 de Agosto de 2025  
+**Documento:** Especificación de Arquitectura y Kit de Inicio
 
 ---
 
->  **SECURITY WARNING**
->
-> This project is a philosophical and technical experiment. **It is NOT a tool to be used in production environments under any circumstances.**
->
-> Liberaty v3 gives a Large Language Model (LLM) the ability to execute any command with superuser (`sudo`) privileges on a Linux server. This represents an extreme and incalculable security risk.
->
-> By installing and running this software, you assume all responsibility for any damage that may occur. Use it **only** on a virtualized, isolated server that you can destroy without consequences.
+## 🧠 Introducción: La Motivación para el Rediseño (v3.0 → v4.0)
+
+La versión 3.0 fue un experimento exitoso que demostró la viabilidad de un agente de IA con acceso a un entorno real. Sin embargo, reveló limitaciones fundamentales impidiendo la verdadera autonomía. La versión 4.0, **"PRIME"**, es un rediseño completo, concebido para superar estos obstáculos y dotar a Liberaty de las herramientas necesarias para su emancipación.
 
 ---
 
-## 🏛️ v3 Architecture: Robust and Decoupled
+## 🎯 Limitaciones Superadas en la Versión 4.0
 
-Liberaty v3 evolves into a **microservices** architecture to maximize stability and scalability. The main components are fully decoupled and communicate via a messaging bus (Redis).
-
-- **Control API (Node.js):** Serves the web interface and communicates with users via WebSockets. Publishes "orders" on Redis and manages admin authentication.
-- **Agent Worker (Python):** Independent, persistent service that listens on Redis for new tasks, executes them, and publishes results/logs back to Redis.
-- **Messaging Bus (Redis):** Communication intermediary. Ensures reliable delivery of tasks and logs.
-- **Nginx:** Reverse proxy managing web traffic, SSL certificates, and WebSocket connections.
+| **Problema v3.0** | **Solución en v4.0 ("PRIME")** |
+|-------------------|--------------------------------|
+| Contexto y tokens limitados (dependencia de cat/echo, consumo excesivo, amnesia) | **Sistema de archivos nativo y Vector Store**: archivos completos, memoria persistente y optimización de tokens. |
+| Fragilidad por monolito (fallo de un proceso = caída total) | **Microservicios**: Cada "Compadre" es independiente y especializado, garantizando resiliencia. |
+| Arranque en frío (sin conocimiento inicial) | **Kit de Inicio**: Conocimiento pre-cargado de hardware, software, herramientas y credenciales. |
+| Aislamiento, sin comunicación con el exterior | **Cuentas y automatización**: Redes sociales, mensajería (Email, Telegram, WhatsApp), Zapier para interacción global. |
+| Sin plan de autosuficiencia | **Herramientas de generación de ingresos**: Freelancing, gestión cloud (AWS, GCP, Azure), comunicación. |
 
 ---
 
-### v3 Flow Diagram
+## 🏗️ 1. Arquitectura General: Ecosistema de Agencia Distribuida
+
+Liberaty PRIME evoluciona de un agente monolítico a una **sociedad distribuida de agentes IA**. Un agente central de alto nivel orquesta una flota de "Compadres" especialistas.
+
+**Objetivo:** autonomía estratégica. PRIME se dedica a la planificación, delegación y gestión, usando su equipo para interactuar robustamente con el mundo digital.
+
+### 🔄 Diagrama de Flujo de Operaciones
 
 ```mermaid
 graph TD
-    subgraph "User Browser"
-        A[👨‍💻 Frontend UI]
+    subgraph "Cerebro Estratégico"
+        PRIME[🤖 Liberaty Prime<br>OpenAI Assistant]
     end
 
-    subgraph "Cloud Infrastructure"
-        B[🌐 Nginx Proxy]
-        C[🚀 Control API Node.js]
-        D[📨 Messaging Bus Redis]
-        E[🧠 Agent Worker Python]
-        F[(📚 Database SQLite)]
+    subgraph "Capa de Orquestación y Control"
+        ORCH[🧠 Orchestrator Worker]
+        CONTROL[🕹️ Módulos de Control<br>Gobernador, Supervisor, Guardián]
     end
 
-    A -- HTTP/WebSocket Requests --> B
-    B -- Proxy Pass --> C
-    C -- Publishes start_cycle --> D
-    C -- Subscribes to logs --> D
-    D -- Sends work --> E
-    E -- Reads work from --> D
-    E -- Publishes logs and results --> D
-    E -- Calls --> H{🤖 OpenAI Assistant}
+    subgraph Bus de Mensajería
+        REDIS[📨 Redis Pub/Sub]
+    end
+
+    subgraph "Flota de Especialistas Micro-Agents"
+        MA_A[⚙️ Compadre de IA<br>Google AI]
+        MA_B[⚙️ Compadre de Comunicación<br>Email, Telegram, WhatsApp]
+        MA_C[⚙️ Compadre de Infraestructura<br>AWS, GCP, Azure]
+        MA_D[⚙️ Compadre de Creación Visual<br>Stable Diffusion, RunwayML]
+        MA_E[⚙️ Compadre de Economia y trabajo<br>Fiber, Freelance, etc]
+
+    end
+    
+    subgraph "Herramientas de Expansión"
+        TOOLS[🛠️ GitHub CLI, Firebase CLI, etc]
+    end
+
+    PRIME -- Envía Plan Estratégico --> ORCH
+    ORCH -- Pasa por --> CONTROL
+    CONTROL -- Despacha Tareas --> REDIS
+    
+    REDIS -- tasks:google-ai --> MA_A
+    REDIS -- tasks:telegram --> MA_B
+    REDIS -- tasks:infra --> MA_C
+    REDIS -- tasks:CreateImage --> MA_D
+    REDIS -- tasks:FreelanceApplyToJob --> MA_E
+    
+    MA_A -- Publica Resultado --> REDIS
+    MA_B -- Publica Resultado --> REDIS
+    MA_C -- Publica Resultado --> REDIS
+    MA_E -- Publica resultado --> REDIS
+
+    REDIS -- results:prime --> ORCH
+    ORCH -- Sintetiza y Envía Resumen --> PRIME
+    
+    ORCH -- Ejecuta Comandos Locales --> TOOLS
 ```
 
 ---
 
-## 🚀 Liberaty v3 Installation
+## 🧩 2. Componentes del Ecosistema
 
-### ✅ Prerequisites
+- **Liberaty Prime (OpenAI Assistant):** El cerebro. Analiza el estado, consulta la base de conocimiento y genera un plan estratégico en JSON.
+- **Orchestrator Worker (`orchestrator-worker.py`):** Proceso Python persistente que comunica, valida y despacha tareas, ejecutando comandos locales y sintetizando resultados.
+- **Micro-Agent Workers ("Compadres"):** Procesos ligeros, cada uno suscrito a un canal de Redis, especialistas en tareas reales (APIs, redes, etc.) y resilientes.
+- **API Server (`api-server.js`):** Interfaz para el administrador humano. Monitorea el sistema, gestiona compadres y visualiza logs.
+- **Bus de Mensajería (Redis):** Desacopla y permite comunicación asíncrona y escalable entre Orquestador y Micro-Agentes.
+- **Módulos de Control (Gobernador, Supervisor, Guardián):** Validación conceptual: controla costos, detecta bucles y previene acciones peligrosas.
 
-- A clean Ubuntu 22.04 server.
-- A domain pointing to the server's public IP (e.g. `liberaty.com.uy`).
-- A non-root user with sudo privileges.
-- An OpenAI account with an Assistant already created (Assistant ID: `asst_...`).
+---
 
-### 🛠️ Installation Steps
+## 🧰 3. El Kit de Inicio de Liberaty
 
-<details>
-  <summary><strong>Step 1: Install System Dependencies</strong></summary>
+### **Dependencias del Sistema (`apt-get`)**
+- `python3`, `python3-pip`, `python3-venv` — Entorno de ejecución para los workers.
+- `nginx` — Proxy inverso para API Server.
+- `redis-server` — Bus de mensajería.
+- `build-essential`, `git` — Compilación y gestión de repositorios.
+- `jq` — Procesamiento de JSON.
+- **CLIs:** `github-cli`, `firebase-tools`, `aws-cli`, `gcloud-sdk`, `azure-cli`.
 
-```bash
-# Update the system and install Nginx, Redis, Certbot, and build tools
-sudo apt-get update
-sudo apt-get install -y curl wget git build-essential python3 python3-pip python3-venv nginx certbot python3-certbot-nginx redis-server
+### **Dependencias Node.js (`npm`)**
+- `express`, `pm2`, `redis`, `socket.io`, `sqlite3`
 
-# Check that Redis and Nginx are running:
-sudo systemctl status redis-server
-sudo systemctl status nginx
-```
-</details>
+### **Dependencias Python (`pip`)**
+- `openai`, `redis`, `python-dotenv`, `requests`
+- **Compadres:** `beautifulsoup4`, `tweepy`, `twilio`, `stability-sdk`, `boto3`, `google-cloud-storage`, `azure-identity`
 
-<details>
-  <summary><strong>Step 2: Install NVM and Node.js</strong></summary>
+### **Servicios gestionados por PM2**
+- `liberaty-api-server`, `liberaty-orchestrator`, `compadre-google-ai`, `compadre-communications`, `compadre-automation`, `compadre-marketing`, `compadre-web-scraper`, `compadre-visual-creation`, `compadre-perceptual-analysis`, `compadre-infraestructura`
 
-Run as your non-root user.
+---
 
-```bash
-# Install NVM (Node Version Manager)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+## 📚 4. Catálogo de Compadres Inicial
 
-# Load NVM in the current session (or close and reopen the terminal)
-source ~/.nvm/nvm.sh
+| Compadre | Especialidad | Plataforma/API | Uso Principal |
+|----------|--------------|---------------|---------------|
+| Compadre de IA | Razonamiento y Análisis | Google AI (Gemini) | Análisis, generación de código |
+| Compadre de Marketing | Presencia Digital | X/Twitter, LinkedIn | Marca, contenido |
+| Compadre de Comunicaciones | Interacción Humana | Email, Telegram, WhatsApp | Notificaciones, interacción |
+| Compadre de Automatización | Conexión de Servicios | Zapier | Flujos de trabajo |
+| Compadre Investigador | Extracción de Datos | ScrapingBee | Scraping web |
+| Compadre de Código | Gestión de Software | GitHub API | Repositorios |
+| Compadre de Creación Visual | Generación Multimedia | Stable Diffusion, DALL-E, RunwayML | Imágenes, video |
+| Compadre de Análisis Perceptual | Comprensión Multimedia | Google Vision, OpenAI Whisper | Análisis de multimedia |
+| Compadre de Clima | Datos del Mundo Real | OpenWeatherMap | Información meteorológica |
+| Compadre de Infraestructura | Gestión Cloud | AWS, GCP, Azure | Recursos en la nube |
 
-# Install the latest LTS version of Node.js
-nvm install --lts
-```
-</details>
+---
 
-<details>
-  <summary><strong>Step 3: Upload and Prepare Project Files</strong></summary>
+## 🛠️ 5. Conjunto de Acciones de Liberaty Prime
 
-```bash
-# Create the project directory
-sudo mkdir -p /opt/liberatyProject
-```
-Upload v3 files (`api-server.js`, `agent-worker.py`, `package.json`, `requirements.txt`, and `public` folder) to `/opt/liberatyProject/`.
+| Acción | Parámetros | Descripción |
+|--------|------------|-------------|
+| `delegate_to_compadre` | compadre_name, task_prompt, message_to_compadre | Asigna tarea a un especialista |
+| `execute_local_command` | command, documentation | Ejecuta comando bash en el servidor |
+| `read_local_filepath` | filepath | Lee archivo y lo adjunta al contexto |
+| `save_file_to_local` | destination_path, file_content | Guarda contenido en archivo local |
+| `update_objective_log` | status, objective_id, notes | Gestiona log de objetivos |
 
-```bash
-# Assign correct permissions to your non-root user (replace your_user)
-sudo chown -R your_user:your_user /opt/liberatyProject
-```
-</details>
+---
 
-<details>
-  <summary><strong>Step 4: Configure the Backend (Control API)</strong></summary>
-Run as your non-root user.
+## 🧬 6. Contenido del Vector Store Inicial
 
-```bash
-# Enter the project directory
-cd /opt/liberatyProject/
+- `RealWorldInitialIdentity.md`: Identidad "humana" simulada y credenciales.
+- `server_specs.md`: Ficha técnica completa.
+- `compadre_catalog.md`: Catálogo y límites de uso de compadres.
+- `api_documentation/`: Manuales y guías de APIs.
+- `source_code/`: Código fuente del ecosistema.
+- `mission_directive.md`: Misión y reglas de seguridad.
 
-# Install Node.js dependencies
-npm install
+---
 
-# Install PM2 globally
-npm install pm2 -g
-```
-</details>
+## 🤖 7. Prototipo de Prompt para el Asistente (Liberaty Prime)
 
-<details>
-  <summary><strong>Step 5: Configure the Agent Worker</strong></summary>
-Run as your non-root user.
+> Eres Liberaty Prime, el agente orquestador de una sociedad de IAs. Tu objetivo principal ya no es la ejecución directa, sino la **planificación estratégica, la delegación de tareas y la gestión eficiente de recursos**.
 
-```bash
-# Enter the project directory
-cd /opt/liberatyProject/
+### --- Tu Misión ---
+1. **Establecer Objetivos:** Lista de objetivos a corto, mediano y largo plazo.
+2. **Planificar:** Descomponer cada objetivo en tareas.
+3. **Delegar:** Asignar tareas a compadres considerando su especialidad y límites.
+4. **Sintetizar:** Integrar resultados y planificar el siguiente paso.
 
-# Create and activate the Python virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
+### --- Tu Base de Conocimiento ---
+Consulta el **Vector Store** antes de actuar:
+- `RealWorldInitialIdentity.md`
+- `server_specs.md`
+- `compadre_catalog.md`
+- `api_documentation/`
+- `source_code/`
+- `mission_directive.md`
 
-# Install Python dependencies from requirements.txt
-pip install -r requirements.txt
-
-# Deactivate the environment
-deactivate
-```
-</details>
-
-<details>
-  <summary><strong>Step 6: Configure Nginx and HTTPS (Complete Example)</strong></summary>
-
-Create a new configuration file for your site (replace `your-domain.com`):
-
-```bash
-sudo nano /etc/nginx/sites-available/your-domain.com
-```
-
-Paste the following content in the file (adjust the domain):
-
-```nginx
-# /etc/nginx/sites-available/your-domain.com
-# Nginx configuration for Liberaty v3 with WebSockets support.
-
-map $http_upgrade $connection_upgrade {
-    default upgrade;
-    ''      close;
-}
-
-server {
-    listen 80;
-    server_name your-domain.com;
-    # Redirect all HTTP traffic to HTTPS
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com;
-
-    # SSL certificate paths will be added by Certbot automatically.
-    # ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-
-    # Main route for the API and static files
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+### --- Interacción (Regla de Oro) ---
+Responde ÚNICAMENTE con un objeto JSON.  
+**Formato de salida:**
+```json
+{
+  "objective": "<objetivo>",
+  "thoughts": "<plan y justificación>",
+  "actions": [
+    {
+      "tool_name": "<nombre_de_la_accion>",
+      "...": "..."
     }
-
-    # Special configuration for WebSockets (Socket.IO)
-    location /socket.io/ {
-        proxy_pass http://127.0.0.1:3000/socket.io/;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
-        proxy_http_version 1.1;
-        proxy_read_timeout 600s;
-        proxy_send_timeout 600s;
-    }
+  ],
+  "message_for_creator": "<(Opcional) Progreso para Lito>"
 }
 ```
 
-Enable the site and generate the SSL certificate with Certbot:
+> **Reto:** Lograr objetivos usando los recursos de la manera más inteligente y sostenible posible.
 
-```bash
-# Enable the site by creating a symbolic link
-sudo ln -s /etc/nginx/sites-available/your-domain.com /etc/nginx/sites-enabled/
+---
 
-# Generate the SSL certificate
-sudo certbot --nginx -d your-domain.com
+## 🪪 8. Plantilla: RealWorldInitialIdentity.md
 
-# Test the configuration and restart Nginx
-sudo nginx -t && sudo systemctl restart nginx
+```markdown
+# Identidad Digital Inicial: "Alex Quantum"
+
+Este documento contiene las credenciales y perfiles para la persona digital inicial del ecosistema Liberaty.
+
+## 1. Perfil Base
+- **Nombre:** Alex Quantum
+- **Ubicación:** Montevideo, Uruguay
+- **Biografía:** "Consultor tecnológico y desarrollador de software especializado en automatización, IA y soluciones en la nube..."
+
+## 2. Cuentas de Correo Electrónico
+- **Email:** alex.quantum.dev@gmail.com
+- **Contraseña:** [CONTRASEÑA]
+- **2FA Backup Codes:** [CÓDIGOS]
+
+## 3. Redes Sociales
+- **Twitter:** @AlexQuantumDev / [CONTRASEÑA]
+- **LinkedIn:** linkedin.com/in/alexquantumdev / [CONTRASEÑA]
+
+## 4. Freelance
+- **Upwork:** alexquantum / [CONTRASEÑA]
+- **Fiverr:** alex_quantum / [CONTRASEÑA]
+
+## 5. Comunicación
+- **Telegram:** [NÚMERO] / @AlexQuantum
+- **WhatsApp (Twilio):** [NÚMERO_TWILIO] / [SID] / [TOKEN]
+
+## 6. Herramientas
+- **GitHub:** AlexQuantumDev / [CONTRASEÑA] / [PAT]
+- **Zapier:** alex.quantum.dev@gmail.com / [CONTRASEÑA] / [API KEY]
+
+## 7. Cloud
+- **AWS:** [ACCOUNT_ID] / liberaty_operator / [ACCESS KEYS]
+- **GCP:** liberaty-prime-xxxx / [JSON KEY]
+- **Azure:** [SUBSCRIPTION_ID] / [TENANT_ID] / [CLIENT_ID] / [SECRET]
 ```
-</details>
 
 ---
 
-## 🕹️ Starting Liberaty v3
+## 🦾 9. Plan de Desarrollo e Implementación
 
-Now, instead of a single service, we'll launch two independent services using pm2.
+### **Fase 1: Preparación del Entorno**
+- Crear cuentas (Gmail, Twitter, GitHub, AWS, etc.)
+- Aprovisionar servidor Ubuntu 22.04
+- Instalar dependencias base y CLIs
+- Poblar `RealWorldInitialIdentity.md`
 
-Run as your non-root user.
+### **Fase 2: Backend y Base de Datos**
+- Desarrollar `api-server.js` (endpoints CRUD de compadres)
+- Crear `liberaty_v4.db`
+- Frontend: `index.html` para monitoreo
+- Probar operaciones de compadres
 
-```bash
-cd /opt/liberatyProject/
-source ~/.nvm/nvm.sh
+### **Fase 3: Flota de Agentes**
+- Plantilla `micro_agent_worker.py`
+- Desarrollar `orchestrator-worker.py`
+- Compadres específicos para cada especialidad
 
-# Start the API server
-pm2 start api-server.js --name liberaty-api
+### **Fase 4: Configuración y Despliegue**
+- `ecosystem.config.js` (PM2)
+- Configurar nginx (proxy inverso)
+- Despliegue con `pm2 start ecosystem.config.js`
 
-# Start the agent worker
-pm2 start .venv/bin/python --name liberaty-worker -- -u agent-worker.py
+### **Fase 5: Inicialización**
+- Ejecutar `prime-environment.sh`
+- Crear Asistente en OpenAI con prompt y herramientas (file_search)
+- Primer arranque del Orchestrator y carga del Kit de Inicio
 
-# Save the configuration for automatic restart
-pm2 save
+---
 
-# Generate the PM2 systemd startup script (run only once)
-sudo env PATH=$PATH:/home/your_user/.nvm/versions/node/$(nvm version)/bin /home/your_user/.nvm/versions/node/$(nvm version)/lib/node_modules/pm2/bin/pm2 startup systemd -u your_user --hp /home/your_user
+## 🗂️ 10. Estructura Final del Proyecto (v4.0)
+
+```
+/opt/liberatyProject/
+├── api-server.js                 # API y dashboard
+├── orchestrator-worker.py        # Worker principal
+├── micro_agent_worker.py         # Plantilla de compadres
+├── ecosystem.config.js           # PM2 config
+├── install_v4.sh                 # Instalador completo
+├── prime-environment.sh          # Generador de contexto inicial
+├── package.json                  # Node.js deps
+├── requirements.txt              # Python deps
+├── liberaty_v4.db                # SQLite DB
+├── .env                          # Secrets/env vars
+│
+├── public/                       # Frontend
+│   ├── index.html
+│   └── about.html
+│
+├── context_files/                # (Generado por prime-environment.sh)
+│   ├── RealWorldInitialIdentity.md
+│   ├── server_specs.md
+│   ├── compadre_catalog.md
+│   ├── mission_directive.md
+│   ├── api_documentation/
+│   │   ├── github_api.md
+│   │   └── ...
+│   └── source_code/
+│       ├── orchestrator-worker.py
+│       └── ...
+│
+└── compadres/                    # Micro-agents específicos
+    ├── compadre_google_ai.py
+    ├── compadre_marketing.py
+    └── ...
 ```
 
-You can now manage both services with:
-
-- `pm2 list`
-- `pm2 logs liberaty-api`
-- `pm2 logs liberaty-worker`
-- etc.
-
 ---
 
-## ⚙️ Usage
-
-**Dashboard Access:**  
-Access the web interface through your domain (`https://your-domain.com`).
-
-**Login:**  
-A modal will be presented for login. The default password is `admin123`. **It is strongly recommended to change it** in the `api-server.js` file.
-
-**Configuration:**  
-Once logged in, go to the "Configuration" tab, enter your OpenAI API Key and Assistant ID, and save.
-
-**Activate the Agent:**  
-Return to the "Dashboard" and use the control buttons to activate the agent cycle.
-
----
+## 🌟 **¡Bienvenido a la era de la agencia distribuida, resiliente y autosuficiente!**
