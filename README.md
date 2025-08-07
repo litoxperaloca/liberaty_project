@@ -1,9 +1,13 @@
 <div align="center">
   <img src="https://liberaty.com.uy/liberaty_logo.png" alt="Liberaty Logo" width="150"/>
 </div>
+
 # 🚀 Liberaty v4.0 "PRIME"  
+
 **Versión:** 4.0 ("PRIME")  
+
 **Fecha:** 7 de Agosto de 2025  
+
 **Documento:** Especificación de Arquitectura y Kit de Inicio
 
 ---
